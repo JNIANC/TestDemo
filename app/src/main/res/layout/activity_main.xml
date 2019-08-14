@@ -7,6 +7,12 @@
     tools:context="com.example.jnc.testDemo.MainActivity">
 
 
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/main_image"
+        android:src="@mipmap/ic_launcher"
+        />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

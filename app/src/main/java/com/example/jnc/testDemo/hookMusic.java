@@ -2,8 +2,18 @@ package com.example.jnc.testDemo;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.res.Resources;
 import android.os.Build;
+import android.os.SystemProperties;
 import android.support.annotation.RequiresApi;
+import android.view.View;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebView;
+
+import org.json.JSONObject;
+
+import java.util.List;
+import java.util.Map;
 
 import javax.security.auth.callback.Callback;
 
@@ -15,17 +25,18 @@ import de.nik.android.mmsdk.mmsdkBridge;
 
 public class hookMusic implements IXposedHookLoadPackage {
 
+
     @Override
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
         if ("cmccwm.mobilemusic".equals(loadPackageParam.packageName)){
             mmsdkBridge.log("loadPackageName:"+loadPackageParam.packageName);
            // XposedHelpers.setStaticObjectField(Build.class,"");
             XposedHelpers.findAndHookMethod(Application.class , "attach",Context.class, new XC_MethodHook() {
-                @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+                //@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    ClassLoader cl = ((Context) param.args[0]).getClassLoader();
-                    Class<?> hookClass = null;
+                   /* ClassLoader cl = ((Context) param.args[0]).getClassLoader();
+                    Class<?> hookClass = null;*/
 
                     XposedHelpers.findAndHookMethod("org.json.JSONObject", loadPackageParam.classLoader, "toString", new XC_MethodHook() {
                         @Override
@@ -41,7 +52,30 @@ public class hookMusic implements IXposedHookLoadPackage {
 
                         }
                     });
-                    XposedHelpers.findAndHookMethod("cmccwm.mobilemusic.bean.RadioStationBean.Item",loadPackageParam.classLoader,"getImageUrl", new XC_MethodHook(){
+                   //旧音乐
+                 /*  XposedHelpers.findAndHookMethod("cmccwm.mobilemusic.renascence.data.entity.UICard",loadPackageParam.classLoader,"getImageUrl",new XC_MethodHook(){
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                            super.afterHookedMethod(param);
+                            mmsdkBridge.log("[org_getImageUrl]"+param.getResult());
+                            if (param.getResult()!=null && !"".equals(param.getResult())){
+                                param.setResult("http://172.17.3.11:8080/automate/download/default.jpg");
+                                mmsdkBridge.log("[hook_getImageUrl]"+param.getResult());
+                            }
+                        }
+                    });*/
+
+                    /*XposedHelpers.findAndHookMethod("com.cmcc.cmvideo.playdetail.PlayDetailActivity$16",loadPackageParam.classLoader,"playVideo", new XC_MethodHook(){
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                            super.afterHookedMethod(param);
+                            mmsdkBridge.log("[org_playVideo]"+param.getResult());
+                        }
+                    });
+*/
+
+                    //新音乐
+                    /*XposedHelpers.findAndHookMethod("cmccwm.mobilemusic.bean.RadioStationBean.Item",loadPackageParam.classLoader,"getImageUrl", new XC_MethodHook(){
                         @Override
                         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                             super.afterHookedMethod(param);
@@ -78,167 +112,88 @@ public class hookMusic implements IXposedHookLoadPackage {
                             }
                         }
                     });
-                   /* XposedHelpers.findAndHookMethod("cmccwm.mobilemusic.renascence.data.entity.UICard",loadPackageParam.classLoader,"getImageUrl",new XC_MethodHook(){
+
+                    //hook音乐活动里的图片
+                    XposedHelpers.findAndHookMethod("cmccwm.mobilemusic.bean.musiclibgson.GsonColumnInfo", loadPackageParam.classLoader, "getColumnPicUrl",new XC_MethodHook() {
                         @Override
                         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("[org_getImageUrl]"+param.getResult());
+                            mmsdkBridge.log("[org_GsonColumnInfo_getColumnPicUrl]" + param.getResult());
                             if (param.getResult()!=null && !"".equals(param.getResult())){
                                 param.setResult("http://172.17.3.11:8080/automate/download/default.jpg");
-                                mmsdkBridge.log("[hook_getImageUrl]"+param.getResult());
+                                mmsdkBridge.log("[hook_GsonColumnInfo_getColumnPicUrl]"+param.getResult());
+                            }
+                        }
+                    });
+                    XposedHelpers.findAndHookMethod("cmccwm.mobilemusic.ui.h5.H5WebInFragment", loadPackageParam.classLoader, "showRangeTips",String.class,new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                            mmsdkBridge.log("[org_H5WebInFragment_showRangeTips]" + param.getResult());
+                            if (param.getResult()!=null && !"".equals(param.getResult())){
+                                param.setResult("http://172.17.3.11:8080/automate/download/default.jpg");
+                                mmsdkBridge.log("[hook_H5WebInFragment_showRangeTips]"+param.getResult() +",[arg[0]]"+param.args[0]);
                             }
                         }
                     });*/
-                    /*XposedHelpers.findAndHookMethod("com.migu.imgloader.MiguImgLoader", loadPackageParam.classLoader, "with",Context.class, new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("[org_with]"+param.getResult()+",[arg[0]]"+param.args[0]);
-                        }
-                    });
-                    //Class.forName("com.migu.rx.lifecycle.ILifeCycle")
-                    XposedHelpers.findAndHookMethod("com.migu.bizz.loder.RecomentdationPageLoader", loadPackageParam.classLoader, "load",XposedHelpers.findClass("com.migu.rx.lifecycle.ILifeCycle",loadPackageParam.classLoader), new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("[org_load]"+param.getResult()+",[arg[0]]"+param.args[0]);
-                        }
-                    });
-                    XposedHelpers.findAndHookMethod("com.bumptech.glide.request.GenericRequest", loadPackageParam.classLoader, "a",String.class,Object.class,String.class, new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("[org_a]"+param.getResult()+",[arg[0]]"+param.args[0]+",[arg[1]] "+param.args[1]+",[arg[2]] "+param.args[2]);
-                        }
-                    });
-                    XposedHelpers.findAndHookMethod("cmccwm.mobilemusic.ui.GlideImageLoader", loadPackageParam.classLoader, "displayImage",Context.class,Object.class,ImageView.class, new XC_MethodHook() {
-                        @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("[org_displayImage] "+param.getResult()+",[arg[0]] "+param.args[0]+",[arg[1]] "+param.args[1]+",[arg[2]] "+param.args[2]);
-                            if (param.args[1]!=null && !"".equals(param.args[1])){
-                                param.args[1] = "http://172.17.3.11:8080/automate/download/default.jpg";
-                                //param.args[1] = "/data/local/tmp/1.jpg";
-                                param.setResult(param);
-                            }
-                            mmsdkBridge.log("[hook_displayImage] "+param.getResult()+",[arg[0]] "+param.args[0]+",[arg[1]] "+param.args[1]+",[arg[2]] "+param.args[2]);
-                        }
-                    });
-                    XposedHelpers.findAndHookMethod("okhttp3.HttpUrl", loadPackageParam.classLoader, "f", String.class, new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("[org_HttpUrl]"+param.getResult()+",[arg[0]] "+param.args[0]);
-                           if (param.args[0]!=null && !"".equals(param.args[0])){
-                                if (param.args[0].toString().contains("fileID")){
-                                    param.args[0] = "http://172.17.3.11:8080/automate/download/default.jpg";
-                                    param.setResult(param);
-                                    mmsdkBridge.log("[hook_HttpUrl]"+param.getResult()+",[arg[0]] "+param.args[0]);
-                                }
-                            }else
-                                mmsdkBridge.log("[HttpUrl] not hook_success");
-                        }
-                    });
-                    XposedHelpers.findAndHookMethod("com.migu.net.NetLoader", loadPackageParam.classLoader, "baseUrl", String.class, new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("[org_baseUrl]"+param.getResult()+",[arg[0]]"+param.args[0]);
-                        }
-                    });
-                    XposedHelpers.findAndHookMethod("com.migu.cache.CacheLoader", loadPackageParam.classLoader, "buildRequest", String.class,String.class, new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("[org_buildRequest]"+param.getResult()+",[arg[0]]"+param.args[0]);
-                        }
-                    });
-                    XposedHelpers.findAndHookMethod("com.bumptech.glide.request.GenericRequest",loadPackageParam.classLoader,"a",String.class,new XC_MethodHook(){
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("[GenericRequest_a]"+param.getResult()+",[arg[0]]"+param.args[0]);
-                        }
-                    });
-                    XposedHelpers.findAndHookMethod("com.bumptech.glide.request.GenericRequest",loadPackageParam.classLoader,"a",String.class,Object.class,String.class,new XC_MethodHook(){
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("[GenericRequest_a3]"+param.getResult()+",[arg[0]]"+param.args[0]+",[arg[1]]"+param.args[1]+",[arg[2]]"+param.args[2]);
-                        }
-                    });
-                    XposedHelpers.findAndHookConstructor("com.bumptech.glide.load.a.e",loadPackageParam.classLoader,new Object[]{Context.class,Uri.class,new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("[constructor_e]"+param.getResult()+"[arg[0]]"+param.args[0]+",[arg[1]]"+param.args[1]);
-                        }
-                    }});
-                    XposedHelpers.findAndHookMethod("com.bumptech.glide.load.a.e",loadPackageParam.classLoader,"a",Uri.class,ContentResolver.class,new XC_MethodHook(){
-                        protected void after(MethodHookParam param) throws Throwable {
-                            mmsdkBridge.log("[imageload_setImageUrl]"+param.getResult()+"[arg[0]]"+param.args[0]+",[arg[1]]"+param.args[1]);
-
-                        }
-                    });
-                    XposedHelpers.findAndHookMethod("com.bumptech.glide.load.resource.c.c", loadPackageParam.classLoader, "a",File.class,int.class,int.class, new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("[reader_c]"+param.getResult()+",param1:"+param.args[0]+",param2:"+param.args[1]+",param3:"+param.args[2]);
-                        }
-                    });
-                    XposedHelpers.findAndHookConstructor("com.bumptech.glide.load.b.g", loadPackageParam.classLoader, new Object[]{InputStream.class,ParcelFileDescriptor.class,new XC_MethodHook() {
+                    XposedHelpers.findAndHookMethod("android.webkit.WebView", loadPackageParam.classLoader, "loadUrl",String.class,
+                            new XC_MethodHook() {
                                 @Override
                                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                                    super.beforeHookedMethod(param);
-                                    Object param1 = param.args[0];
-                                    Object param2 = param.args[1];
-                                    mmsdkBridge.log("[Constructor_g]"+param.getResult()+",p1:"+param1+",p2:"+param2);
+                                    String pay_content_id = SystemProperties.get("hook_pay_content_id");
+                                    mmsdkBridge.log("[org_WebView]"+param.args[0]);
+                                    if (param.args[0]!=null && !"".equals(param.args[0])){ //http://a.mll.migu.cn/app/v2/zt/2017/random-listen/location.html?ua=Android_Sst&version=4.3110
+                                        if (param.args[0].toString().contains("http://h5.nf.migu.cn/app/v2/zt/2017/random-listen/location.html?ua=Android_Sst&version")){
+                                            param.args[0] = "https://h5.nf.migu.cn/app/v3/p/digital-album/list-pwa/index.html";
+                                        }
+                                        if (pay_content_id!=null && param.args[0].toString().contains("https://h5.nf.migu.cn/app/v3/p/digital-album/detail/index.html")){
+                                            param.args[0] = "https://h5.nf.migu.cn/app/v3/p/digital-album/detail/index.html?id="+SystemProperties.get("hook_pay_content_id")+"&ua=Android_Sst&version=4.3110";
+                                            mmsdkBridge.log("[hook_WebView] 成功 "+param.args[0]);
+                                        }
+                                    }
                                 }
-                            }}
+                            }
                     );
-                    XposedHelpers.findAndHookMethod("com.bumptech.glide.request.d", loadPackageParam.classLoader, "a",Long.class, new XC_MethodHook() {
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            super.afterHookedMethod(param);
-                            mmsdkBridge.log("param.args[0]:"+param.args[0]+",getresult:"+param.getResult());
-                        }
-                    });*/
-                    /*XposedHelpers.findAndHookMethod("com.migu.bizz_v2.uicard.entity.GroupBean",loadPackageParam.classLoader,"setItemList",List.class,new XC_MethodHook(){
-                        protected void after(MethodHookParam param) throws Throwable {
-                            mmsdkBridge.log("[MiguImgLoader_setItemList]"+param.getResult()+"[arg[0]]"+param.args[0]);
-
-                        }
-                    });*/
-                    //shouldOverrideUrlLoading
-                    /*XposedHelpers.findAndHookMethod("android.webkit.WebViewClient", loadPackageParam.classLoader, "shouldInterceptRequest", WebView.class,WebResourceRequest.class, new XC_MethodHook() {
+                   /* XposedHelpers.findAndHookMethod("com.migu.bizanalytics.LogFileManager", loadPackageParam.classLoader, "writeLog", String.class, new XC_MethodHook() {
                         @Override
                         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            mmsdkBridge.log("[WebViewClient_shouldInterceptRequest]"+param.getResult());
-                            WebResourceRequest request= (WebResourceRequest) param.args[1];
-                            String url = request.getUrl().getPath();
-                            WebResourceResponse resourceResponse = null;
-                            String insteadUrl = null;
-                            String mime="image/jpeg";
-                            if (url.toLowerCase().endsWith("jpg")){
-                                insteadUrl = "http://172.17.3.11:8080/automate/download/default.jpg";
-                            }else if (url.toLowerCase().endsWith("png")){
-                                insteadUrl = "http://172.17.3.11:8080/automate/download/default.png";
-                                mime = "image/png";
-                            }
-                            if (insteadUrl!=null){
-                                URL http = new URL(insteadUrl);
-                                resourceResponse = new WebResourceResponse(mime,"utf-8",http.openStream());
-                                param.setResult(resourceResponse);
-                                mmsdkBridge.log("替换前的url:"+url+"/n"+"替换后的insteadUrl"+ insteadUrl);
-                            }
-                        }
-
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-
+                            super.beforeHookedMethod(param);
+                            mmsdkBridge.log("[org_LogFileManager]params:"+param.args[0]+"\t"+param.getResult()+"\t");
+                            JSONObject json = new JSONObject((String) param.args[0]);
+                            JSONObject params=json.getJSONObject("params");
+                            String url = (String) json.getJSONArray("stack").getJSONObject(1).get("params");
+                            json.put("params",params);
+                            mmsdkBridge.log("[_LogFileManager]params:"+param.args[0]+"\t"+param.getResult()+"\t"+"url: "+url);
+                            *//*String url ="https://h5.nf.migu.cn/app/v3/p/digital-album/list-pwa/index.html";
+                            json.put("url",url);
+                            mmsdkBridge.log("[hook]params: "+param.args[0]+"\t"+param.getResult()+"\t"+"url: "+url);*//*
                         }
                     });*/
+                    //处理WebView的
+                   /* XposedHelpers.findAndHookMethod("android.webkit.WebView", loadPackageParam.classLoader, "loadUrl",String.class, Map.class,
+                            new XC_MethodHook() {
+                                @Override
+                                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                    //mmsdkBridge.log("[before_WebView]"+param.args[0]+" \t"+param.getResult());//
+                                    try{
+                                        throw new Exception();
+                                    }catch (Exception e){
+                                        mmsdkBridge.log("[before_WebView2]"+param.args[0]+" \t"+param.args[1]+" \t"+param.getResult());}
+                                }
+                            }
+                    );
+
+                    XposedHelpers.findAndHookMethod("android.webkit.WebView", loadPackageParam.classLoader, "loadUrl",String.class,
+                            new XC_MethodHook() {
+                                @Override
+                                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                                    //mmsdkBridge.log("[before_WebView]"+param.args[0]+" \t"+param.getResult());
+                                    try{
+                                        throw new Exception();
+                                    }catch (Exception e){
+                                        mmsdkBridge.log("[before_WebView]"+param.args[0]+" \t"+param.getResult());
+                                    }
+                                }
+                            }
+                    );*/
 
                 }
             });
